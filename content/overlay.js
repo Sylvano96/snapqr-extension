@@ -1,4 +1,4 @@
-// Injecté à la demande : sélection d'une zone de la page puis modal de résultat.
+// Injected on demand: select an area of the page, then show the result dialog.
 (() => {
   const HOST_ID = 'snapqr-ext-host';
   document.getElementById(HOST_ID)?.remove();
@@ -102,7 +102,7 @@
     const size = el('span', 'size');
     sel.append(size);
     const hint = el('div', 'hint');
-    hint.append('Encadre le QR code · clic simple = toute la page · ', el('kbd', null, 'Échap'), ' pour annuler');
+    hint.append(t('hintBefore'), el('kbd', null, t('keyEsc')), t('hintAfter'));
     layer.append(sel, hint);
     stage.append(layer);
 
@@ -137,13 +137,13 @@
       if (r.width < 8 || r.height < 8) r = { x: 0, y: 0, width: innerWidth, height: innerHeight };
       capture(r);
     });
-    // Le défilement reste possible tant qu'on n'est pas en train d'encadrer.
+    // Scrolling stays possible as long as no box is being drawn.
     layer.addEventListener('wheel', e => { if (start) e.preventDefault(); }, { passive: false });
     layer.addEventListener('contextmenu', e => { e.preventDefault(); destroy(); });
   }
 
   async function capture(rect) {
-    // On masque le calque pour qu'il n'apparaisse pas sur la capture.
+    // Hide the overlay so it doesn't appear in the capture.
     stage.replaceChildren();
     host.style.visibility = 'hidden';
     await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(r, 40))));
@@ -156,7 +156,7 @@
         viewport: { width: innerWidth, height: innerHeight }
       });
     } catch {
-      res = { ok: false, error: "L'extension a été rechargée : relance le scan." };
+      res = { ok: false, error: t('errReloaded') };
     }
     host.style.visibility = '';
     showResult(res);
@@ -174,7 +174,7 @@
     const dot = el('span', 'dot');
     const title = el('h2');
     const close = el('button', 'x', '×');
-    close.setAttribute('aria-label', 'Fermer');
+    close.setAttribute('aria-label', t('close'));
     close.addEventListener('click', destroy);
     const brand = el('span', 'brand', 'Snap');
     brand.append(el('span', null, 'Qr'));
@@ -191,26 +191,24 @@
 
     if (!res?.ok || res.text == null) {
       dot.classList.add('fail');
-      title.textContent = res?.ok ? 'Aucun QR code trouvé' : 'Erreur';
-      body.append(el('p', null, res?.ok
-        ? 'Encadre le QR code en entier, avec un peu de marge autour. S\'il est très petit, zoome dans la page (Ctrl +) puis réessaie.'
-        : res?.error || 'Erreur inconnue.'));
-      button('Réessayer', startSelect, true);
-      button('Fermer', destroy);
+      title.textContent = res?.ok ? t('noQrTitle') : t('errorTitle');
+      body.append(el('p', null, res?.ok ? t('noQrHelp') : res?.error || t('errUnknown')));
+      button(t('retry'), startSelect, true);
+      button(t('close'), destroy);
     } else {
       const info = QRParse.classify(res.text);
-      title.textContent = 'QR code détecté';
+      title.textContent = t('qrDetected');
       body.append(QRParse.buildView(info));
       if (info.href) {
-        button(info.type === 'url' ? 'Ouvrir le lien' : 'Ouvrir', () => {
+        button(info.type === 'url' ? t('openLink') : t('open'), () => {
           window.open(info.href, '_blank', 'noopener,noreferrer');
         }, true);
       }
       if (info.copyExtra) {
         button(info.copyExtra.label, b => copy(info.copyExtra.value, b));
       }
-      button('Copier', b => copy(info.text, b), !info.href);
-      button('Nouveau scan', startSelect);
+      button(t('copy'), b => copy(info.text, b), !info.href);
+      button(t('newScan'), startSelect);
     }
 
     modal.append(head, body, actions);
@@ -232,7 +230,7 @@
       ta.remove();
     }
     const label = btn.textContent;
-    btn.textContent = 'Copié ✓';
+    btn.textContent = t('copied');
     setTimeout(() => { btn.textContent = label; }, 1400);
   }
 

@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="fr">
+<html>
 <head>
   <meta charset="utf-8">
   <title>SnapQr</title>
@@ -9,21 +9,21 @@
   <header>
     <h1 class="brand"><img src="../icons/icon32.png" alt="" width="22" height="22"><span>Snap<b>Qr</b></span></h1>
     <nav class="tabs" role="tablist">
-      <button class="tab" role="tab" data-tab="scan">Scanner</button>
-      <button class="tab" role="tab" data-tab="generate">Générer</button>
+      <button class="tab" role="tab" data-tab="scan" data-i18n="tabScan"></button>
+      <button class="tab" role="tab" data-tab="generate" data-i18n="tabGenerate"></button>
     </nav>
   </header>
 
   <section id="tab-scan" class="panel" role="tabpanel">
     <button id="btn-region" class="btn primary big">
       <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M4 9V5a1 1 0 0 1 1-1h4M15 4h4a1 1 0 0 1 1 1v4M20 15v4a1 1 0 0 1-1 1h-4M9 20H5a1 1 0 0 1-1-1v-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-      Sélectionner une zone de la page
+      <span data-i18n="btnRegion"></span>
     </button>
-    <p class="hint">Raccourci : <kbd id="shortcut">Alt+Shift+S</kbd> · aussi via clic droit</p>
+    <p class="hint"><span data-i18n="shortcutLabel"></span> <kbd id="shortcut">Alt+Shift+S</kbd> <span data-i18n="shortcutRightClick"></span></p>
 
-    <div id="drop" class="drop" tabindex="0" role="button" aria-label="Importer une image">
+    <div id="drop" class="drop" tabindex="0" role="button" data-i18n-aria="dropAria">
       <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M12 16V4m0 0-4 4m4-4 4 4M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      <span>Glisse une image, colle-la (<kbd>Ctrl+V</kbd>)<br>ou <u>choisis un fichier</u></span>
+      <span><span data-i18n="dropText"></span> (<kbd>Ctrl+V</kbd>)<br><span data-i18n="dropOr"></span> <u data-i18n="dropChoose"></u></span>
       <input id="file" type="file" accept="image/*" hidden>
     </div>
 
@@ -32,30 +32,31 @@
   </section>
 
   <section id="tab-generate" class="panel" role="tabpanel" hidden>
-    <textarea id="gen-text" rows="3" placeholder="Texte, lien, numéro…"></textarea>
+    <textarea id="gen-text" rows="3" data-i18n-placeholder="genPlaceholder"></textarea>
     <div class="row options">
-      <label>Correction
+      <label><span data-i18n="genCorrection"></span>
         <select id="gen-ec">
-          <option value="L">Basse</option>
-          <option value="M" selected>Moyenne</option>
-          <option value="Q">Haute</option>
-          <option value="H">Maximale</option>
+          <option value="L" data-i18n="ecL"></option>
+          <option value="M" data-i18n="ecM" selected></option>
+          <option value="Q" data-i18n="ecQ"></option>
+          <option value="H" data-i18n="ecH"></option>
         </select>
       </label>
-      <label>Couleur <input id="gen-fg" type="color" value="#000000"></label>
-      <label>Fond <input id="gen-bg" type="color" value="#ffffff"></label>
+      <label><span data-i18n="genColor"></span> <input id="gen-fg" type="color" value="#000000"></label>
+      <label><span data-i18n="genBackground"></span> <input id="gen-bg" type="color" value="#ffffff"></label>
     </div>
     <div class="qr-wrap">
       <canvas id="gen-canvas" width="0" height="0"></canvas>
-      <p id="gen-empty" class="muted">Saisis un texte pour générer le QR code.</p>
+      <p id="gen-empty" class="muted" data-i18n="genEmpty"></p>
       <p id="gen-error" class="error" hidden></p>
     </div>
     <div class="row">
-      <button id="gen-download" class="btn primary">Télécharger PNG</button>
-      <button id="gen-copy" class="btn">Copier l'image</button>
+      <button id="gen-download" class="btn primary" data-i18n="genDownload"></button>
+      <button id="gen-copy" class="btn" data-i18n="genCopy"></button>
     </div>
   </section>
 
+  <script src="../shared/i18n.js"></script>
   <script src="../lib/jsQR.js"></script>
   <script src="../lib/qrcode.js"></script>
   <script src="../shared/decode.js"></script>

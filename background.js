@@ -1,12 +1,12 @@
-importScripts('lib/jsQR.js', 'shared/decode.js');
+importScripts('shared/i18n.js', 'lib/jsQR.js', 'shared/decode.js');
 
-const CONTENT_FILES = ['shared/parse.js', 'content/overlay.js'];
+const CONTENT_FILES = ['shared/i18n.js', 'shared/parse.js', 'content/overlay.js'];
 const MENU_ID = 'snapqr-scan';
 
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.create({
     id: MENU_ID,
-    title: 'Scanner un QR code sur cette page',
+    title: t('menuScan'),
     contexts: ['page', 'image', 'link', 'selection']
   });
 });
@@ -30,28 +30,25 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   }
 });
 
-// Injecte le calque de sélection dans l'onglet (autorisé par activeTab).
+// Injects the selection overlay into the tab (allowed by activeTab).
 async function startRegionScan(tabId) {
-  if (tabId == null) return { ok: false, error: 'Aucun onglet actif.' };
+  if (tabId == null) return { ok: false, error: t('errNoTab') };
   try {
     await chrome.scripting.executeScript({ target: { tabId }, files: CONTENT_FILES });
     return { ok: true };
   } catch (e) {
-    return {
-      ok: false,
-      error: "Cette page est protégée par le navigateur (pages chrome://, Chrome Web Store, visionneuse PDF…). Utilise l'import d'image à la place."
-    };
+    return { ok: false, error: t('errProtected') };
   }
 }
 
-// Capture l'onglet visible, découpe la zone sélectionnée et la décode.
+// Captures the visible tab, crops the selected area and decodes it.
 async function captureAndDecode(tab, rect, viewport) {
   try {
     const dataUrl = await chrome.tabs.captureVisibleTab(tab.windowId, { format: 'png' });
     const blob = await (await fetch(dataUrl)).blob();
     const bitmap = await createImageBitmap(blob);
 
-    // La capture est en pixels physiques : on convertit depuis les pixels CSS.
+    // The capture is in device pixels: convert from CSS pixels.
     const scale = bitmap.width / viewport.width;
     const sx = clamp(Math.floor(rect.x * scale), 0, bitmap.width - 1);
     const sy = clamp(Math.floor(rect.y * scale), 0, bitmap.height - 1);
@@ -62,7 +59,7 @@ async function captureAndDecode(tab, rect, viewport) {
     bitmap.close();
     return { ok: true, text };
   } catch (e) {
-    return { ok: false, error: 'Capture impossible : ' + (e?.message || e) };
+    return { ok: false, error: t('errCapture', String(e?.message || e)) };
   }
 }
 

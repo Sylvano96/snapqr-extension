@@ -1,9 +1,9 @@
-// Décodage QR partagé entre le service worker et le popup (nécessite jsQR).
+// QR decoding shared by the service worker and the popup (requires jsQR).
 globalThis.QRDecode = (() => {
   function decodeAt(source, sx, sy, sw, sh, scale, padRatio) {
     const w = Math.max(1, Math.round(sw * scale));
     const h = Math.max(1, Math.round(sh * scale));
-    // Marge blanche : un QR recadré trop serré perd sa « quiet zone ».
+    // White margin: a QR cropped too tightly loses its "quiet zone".
     const pad = Math.round(Math.max(w, h) * padRatio);
     const W = w + pad * 2;
     const H = h + pad * 2;

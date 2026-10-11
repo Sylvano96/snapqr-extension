@@ -1,74 +1,74 @@
-// Interprète le contenu d'un QR code et construit sa vue (popup + modal sur la page).
+// Interprets the content of a QR code and builds its view (popup + on-page dialog).
 globalThis.QRParse = (() => {
   function classify(raw) {
     const text = raw;
-    const t = raw.trim();
+    const s = raw.trim();
 
-    if (/^https?:\/\/\S+$/i.test(t)) {
+    if (/^https?:\/\/\S+$/i.test(s)) {
       try {
-        const u = new URL(t);
-        return { type: 'url', label: 'Lien', text, href: u.href, host: u.hostname };
+        const u = new URL(s);
+        return { type: 'url', label: t('typeUrl'), text, href: u.href, host: u.hostname };
       } catch {}
     }
-    if (/^www\.\S+\.\S+$/i.test(t)) {
+    if (/^www\.\S+\.\S+$/i.test(s)) {
       try {
-        const u = new URL('https://' + t);
-        return { type: 'url', label: 'Lien', text, href: u.href, host: u.hostname };
+        const u = new URL('https://' + s);
+        return { type: 'url', label: t('typeUrl'), text, href: u.href, host: u.hostname };
       } catch {}
     }
-    if (/^WIFI:/i.test(t)) {
-      const f = fieldsOf(t.slice(5));
-      const fields = [['Réseau', f.S || ''], ['Sécurité', f.T || 'Aucune']];
-      if (f.P) fields.push(['Mot de passe', f.P]);
-      if (/^true$/i.test(f.H || '')) fields.push(['Masqué', 'Oui']);
+    if (/^WIFI:/i.test(s)) {
+      const f = fieldsOf(s.slice(5));
+      const fields = [[t('fNetwork'), f.S || ''], [t('fSecurity'), f.T || t('fNone')]];
+      if (f.P) fields.push([t('fPassword'), f.P]);
+      if (/^true$/i.test(f.H || '')) fields.push([t('fHidden'), t('fYes')]);
       return {
-        type: 'wifi', label: 'Wi-Fi', text, fields,
-        copyExtra: f.P ? { label: 'Copier le mot de passe', value: f.P } : null
+        type: 'wifi', label: t('typeWifi'), text, fields,
+        copyExtra: f.P ? { label: t('copyPassword'), value: f.P } : null
       };
     }
-    if (/^mailto:/i.test(t)) {
-      const addr = decodeSafe(t.slice(7).split('?')[0]);
-      return { type: 'email', label: 'E-mail', text, href: t, host: addr };
+    if (/^mailto:/i.test(s)) {
+      const addr = decodeSafe(s.slice(7).split('?')[0]);
+      return { type: 'email', label: t('typeEmail'), text, href: s, host: addr };
     }
-    if (/^MATMSG:/i.test(t)) {
-      const f = fieldsOf(t.slice(7));
+    if (/^MATMSG:/i.test(s)) {
+      const f = fieldsOf(s.slice(7));
       const href = 'mailto:' + encodeURI(f.TO || '') +
         '?subject=' + encodeURIComponent(f.SUB || '') + '&body=' + encodeURIComponent(f.BODY || '');
       return {
-        type: 'email', label: 'E-mail', text, href, host: f.TO || '',
-        fields: [['Objet', f.SUB || ''], ['Message', f.BODY || '']].filter(r => r[1])
+        type: 'email', label: t('typeEmail'), text, href, host: f.TO || '',
+        fields: [[t('fSubject'), f.SUB || ''], [t('fMessage'), f.BODY || '']].filter(r => r[1])
       };
     }
-    if (/^tel:/i.test(t)) {
-      return { type: 'tel', label: 'Téléphone', text, href: t, host: t.slice(4) };
+    if (/^tel:/i.test(s)) {
+      return { type: 'tel', label: t('typeTel'), text, href: s, host: s.slice(4) };
     }
-    if (/^(smsto|sms):/i.test(t)) {
-      const [, num = '', msg = ''] = t.match(/^(?:smsto|sms):([^:?]*)[:?]?(?:body=)?(.*)$/is) || [];
+    if (/^(smsto|sms):/i.test(s)) {
+      const [, num = '', msg = ''] = s.match(/^(?:smsto|sms):([^:?]*)[:?]?(?:body=)?(.*)$/is) || [];
       return {
-        type: 'sms', label: 'SMS', text, href: 'sms:' + num,
-        fields: [['Numéro', num], ['Message', decodeSafe(msg)]].filter(r => r[1])
+        type: 'sms', label: t('typeSms'), text, href: 'sms:' + num,
+        fields: [[t('fNumber'), num], [t('fMessage'), decodeSafe(msg)]].filter(r => r[1])
       };
     }
-    if (/^BEGIN:VCARD/i.test(t)) {
-      const get = key => (t.match(new RegExp('^' + key + '[^:\\n]*:(.*)$', 'im')) || [])[1]?.trim() || '';
-      const fields = [['Nom', get('FN') || get('N').replace(/;/g, ' ').trim()],
-        ['Téléphone', get('TEL')], ['E-mail', get('EMAIL')], ['Organisation', get('ORG')],
-        ['Site', get('URL')]].filter(r => r[1]);
-      return { type: 'contact', label: 'Contact', text, fields };
+    if (/^BEGIN:VCARD/i.test(s)) {
+      const get = key => (s.match(new RegExp('^' + key + '[^:\\n]*:(.*)$', 'im')) || [])[1]?.trim() || '';
+      const fields = [[t('fName'), get('FN') || get('N').replace(/;/g, ' ').trim()],
+        [t('typeTel'), get('TEL')], [t('typeEmail'), get('EMAIL')], [t('fOrg'), get('ORG')],
+        [t('fWebsite'), get('URL')]].filter(r => r[1]);
+      return { type: 'contact', label: t('typeContact'), text, fields };
     }
-    if (/^geo:/i.test(t)) {
-      const [lat, lng] = t.slice(4).split(/[,;?]/);
+    if (/^geo:/i.test(s)) {
+      const [lat, lng] = s.slice(4).split(/[,;?]/);
       if (isFinite(lat) && isFinite(lng)) {
         return {
-          type: 'geo', label: 'Position', text, host: `${lat}, ${lng}`,
+          type: 'geo', label: t('typeGeo'), text, host: `${lat}, ${lng}`,
           href: `https://www.google.com/maps?q=${encodeURIComponent(lat + ',' + lng)}`
         };
       }
     }
-    return { type: 'text', label: 'Texte', text };
+    return { type: 'text', label: t('typeText'), text };
   }
 
-  // Champs « K:valeur; » avec échappements \; \, \: \\ (formats WIFI, MATMSG).
+  // "K:value;" fields with \; \, \: \\ escapes (WIFI and MATMSG formats).
   function fieldsOf(s) {
     const out = {};
     const re = /([A-Z]+):((?:\\.|[^;\\])*);?/gi;
@@ -88,13 +88,13 @@ globalThis.QRParse = (() => {
     return node;
   }
 
-  // Le contenu est toujours inséré via textContent : jamais d'HTML venant du QR.
+  // Content is always inserted via textContent: never HTML coming from the QR code.
   function buildView(info) {
     const wrap = el('div', 'qr-view');
     wrap.append(el('span', 'qr-badge qr-badge-' + info.type, info.label));
     if (info.host) wrap.append(el('div', 'qr-host', info.host));
     if (info.type === 'url' && info.href.startsWith('http:')) {
-      wrap.append(el('div', 'qr-warn', 'Lien non sécurisé (http). Vérifie le domaine avant de l\'ouvrir.'));
+      wrap.append(el('div', 'qr-warn', t('warnHttp')));
     }
     if (info.fields?.length) {
       const dl = el('dl', 'qr-fields');

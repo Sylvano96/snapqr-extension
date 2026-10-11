@@ -2,7 +2,13 @@ const $ = sel => document.querySelector(sel);
 
 qrcode.stringToBytes = qrcode.stringToBytesFuncs['UTF-8'];
 
-// ---------- Onglets ----------
+// ---------- Translations ----------
+document.documentElement.lang = chrome.i18n.getUILanguage();
+for (const node of document.querySelectorAll('[data-i18n]')) node.textContent = t(node.dataset.i18n);
+for (const node of document.querySelectorAll('[data-i18n-placeholder]')) node.placeholder = t(node.dataset.i18nPlaceholder);
+for (const node of document.querySelectorAll('[data-i18n-aria]')) node.setAttribute('aria-label', t(node.dataset.i18nAria));
+
+// ---------- Tabs ----------
 function showTab(name) {
   for (const tab of document.querySelectorAll('.tab')) {
     tab.setAttribute('aria-selected', String(tab.dataset.tab === name));
@@ -21,7 +27,7 @@ showTab(savedTab);
 
 chrome.commands.getAll(cmds => {
   const cmd = cmds.find(c => c.name === 'scan-region');
-  $('#shortcut').textContent = cmd?.shortcut || 'non défini';
+  $('#shortcut').textContent = cmd?.shortcut || t('shortcutNone');
 });
 
 function flash(btn, text) {
@@ -32,18 +38,18 @@ function flash(btn, text) {
 
 async function copyText(text, btn) {
   await navigator.clipboard.writeText(text);
-  flash(btn, 'Copié ✓');
+  flash(btn, t('copied'));
 }
 
-// ---------- Scanner : zone de la page ----------
+// ---------- Scan: page area ----------
 $('#btn-region').addEventListener('click', async () => {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   const res = await chrome.runtime.sendMessage({ type: 'start-scan', tabId: tab?.id });
   if (res?.ok) window.close();
-  else showScanError(res?.error || 'Impossible de lancer le scan sur cette page.');
+  else showScanError(res?.error || t('errStartScan'));
 });
 
-// ---------- Scanner : import d'image ----------
+// ---------- Scan: image import ----------
 const drop = $('#drop');
 const fileInput = $('#file');
 
@@ -72,15 +78,15 @@ document.addEventListener('paste', e => {
 
 async function handleFile(file) {
   if (!file) return;
-  if (!file.type.startsWith('image/')) return showScanError("Ce fichier n'est pas une image.");
+  if (!file.type.startsWith('image/')) return showScanError(t('errNotImage'));
   try {
     const bitmap = await createImageBitmap(file);
     const text = QRDecode.region(bitmap);
     bitmap.close();
-    if (text == null) showScanError('Aucun QR code trouvé dans cette image.');
+    if (text == null) showScanError(t('errNoQrImage'));
     else showScanResult(text);
   } catch {
-    showScanError("Impossible de lire cette image.");
+    showScanError(t('errReadImage'));
   }
 }
 
@@ -106,16 +112,16 @@ function showScanResult(text) {
     actions.append(b);
   };
   if (info.href) {
-    button(info.type === 'url' ? 'Ouvrir le lien' : 'Ouvrir', () => chrome.tabs.create({ url: info.href }), true);
+    button(info.type === 'url' ? t('openLink') : t('open'), () => chrome.tabs.create({ url: info.href }), true);
   }
   if (info.copyExtra) button(info.copyExtra.label, b => copyText(info.copyExtra.value, b));
-  button('Copier', b => copyText(info.text, b), !info.href);
+  button(t('copy'), b => copyText(info.text, b), !info.href);
 
   box.replaceChildren(QRParse.buildView(info), actions);
   box.hidden = false;
 }
 
-// ---------- Générer ----------
+// ---------- Generate ----------
 const genText = $('#gen-text');
 const canvas = $('#gen-canvas');
 
@@ -132,7 +138,7 @@ function renderQR() {
       qr.make();
       drawQR(qr);
     } catch {
-      err.textContent = 'Texte trop long pour un QR code.';
+      err.textContent = t('genTooLong');
       err.hidden = false;
     }
   }
@@ -176,14 +182,14 @@ $('#gen-copy').addEventListener('click', e => {
   canvas.toBlob(async blob => {
     try {
       await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
-      flash(btn, 'Copié ✓');
+      flash(btn, t('copied'));
     } catch {
-      flash(btn, 'Échec de la copie');
+      flash(btn, t('copyFailed'));
     }
   });
 });
 
-// Pré-remplit avec l'adresse de l'onglet courant.
+// Prefill with the current tab's address.
 chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
   if (!genText.value && tab?.url && /^https?:/.test(tab.url)) genText.value = tab.url;
   renderQR();
