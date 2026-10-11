@@ -46,3 +46,7 @@ Extension Edge / Chrome (Manifest V3) pour scanner les QR codes affichés sur un
 - `contextMenus` : entrée du clic droit.
 
 Aucune donnée n'est envoyée sur Internet : tout est décodé localement.
+
+## Licence
+
+[MIT](LICENSE). Les bibliothèques du dossier `lib/` gardent leur propre licence (Apache-2.0 pour jsQR, MIT pour qrcode-generator).
