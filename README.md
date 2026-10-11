@@ -4,7 +4,7 @@
 
 Edge / Chrome extension (Manifest V3) to scan QR codes shown on any web page — no download, no phone — and to generate your own.
 
-<p align="center"><img src="publication/capture-2-result.png" alt="Scan result on a web page" width="720"></p>
+<p align="center"><img src="docs/screenshots/capture-2-result.png" alt="Scan result on a web page" width="720"></p>
 
 > **Microsoft Edge Add-ons**: under review.
 
@@ -12,7 +12,7 @@ Edge / Chrome extension (Manifest V3) to scan QR codes shown on any web page —
 
 | Draw a box around the QR code | Import an image | Generate a QR code |
 |---|---|---|
-| ![Selection](publication/capture-1-selection.png) | ![Import](publication/capture-3-import.png) | ![Generate](publication/capture-4-generate.png) |
+| ![Selection](docs/screenshots/capture-1-selection.png) | ![Import](docs/screenshots/capture-3-import.png) | ![Generate](docs/screenshots/capture-4-generate.png) |
 
 ## Features
 
@@ -43,7 +43,7 @@ Edge / Chrome extension (Manifest V3) to scan QR codes shown on any web page —
 | `shared/parse.js` | Content type detection (link, Wi-Fi, email, contact…) |
 | `shared/i18n.js` | Translation helper |
 | `_locales/` | UI strings in English (`en`, default) and French (`fr`) |
-| `publication/` | Store listing assets and texts (not part of the extension) |
+| `docs/` | Screenshots used in this README |
 | `lib/` | [jsQR](https://github.com/cozmo/jsQR) (Apache-2.0), [qrcode-generator](https://github.com/kazuhikoarase/qrcode-generator) (MIT) |
 
 ## How a page scan works
